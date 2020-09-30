@@ -6,10 +6,6 @@ class Teardown(InternalSystemMessage):
     pass
 
 
-class SchedulerStarted(InternalSystemMessage):
-    pass
-
-
 class SpawnRequest(InternalSystemMessage):
     def __init__(self, parent_ref, actor_class, args, kwargs):
         self.parent_ref = parent_ref

@@ -12,13 +12,22 @@ class Connection(Actor):
         self.writer = writer
 
     async def receive(self, message, sender):
-        data = await self.reader.read(100)
-        message = data.decode()
-        addr = self.writer.get_extra_info('peername')
-        print("Received %r from %r at %r" % (message, addr, self.ref()))
-        self.writer.write(data if message != 'q\n' else b'bye!\n')
-        await self.writer.drain()
-        self.writer.close()
+        while True:
+            data = await self.reader.read(100)
+            message = data.decode()
+
+            print(message, message == 'q\n')
+            if message == 'q\n':
+                self.writer.write("bye!\n")
+                await self.writer.drain()
+                self.writer.close()
+                return
+
+            addr = self.writer.get_extra_info('peername')
+            print("Received %r from %r at %r" % (message, addr, self.ref()))
+            self.writer.write(data)
+
+            await self.writer.drain()
 
 
 class Server(Actor):

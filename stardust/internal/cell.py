@@ -44,8 +44,8 @@ class Cell:
 
             try:
                 await self._behaviour(message.message, message.sender_ref)
-            except Exception:
-                pass
+            except Exception as e:
+                print(e)
 
             self.sender = None
             self.context = None

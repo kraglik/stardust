@@ -21,5 +21,4 @@ class Config:
         elif data is None:
             data = {}
 
-        self.cores_count = cores_count or data.get('cores_count', os.cpu_count())
         self.system_name = system_name or data.get('system_name', 'system')
