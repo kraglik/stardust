@@ -50,7 +50,7 @@ class Actor:
 
     async def spawn(self, actor_class, *args, **kwargs):
         msg = SpawnRequest(
-            self.ref,
+            self._ref,
             actor_class,
             args,
             kwargs
@@ -58,17 +58,19 @@ class Actor:
 
         future = asyncio.Future()
 
-        def _callback(_):
-            self._cell().a_context = None
-            self._cell().a_ref = None
-            self._cell().future = None
+        cell = self._cell()
 
-        self._cell().future = future
+        def _callback(_):
+            cell.a_context = None
+            cell.a_ref = None
+            cell.future = None
+
+        cell.future = future
         get_scheduler().outgoing_manager.send_message(msg)
 
         future.add_done_callback(_callback)
 
-        await future
+        return await future
 
     async def ask(self, actor_ref, message, timeout):
         context = uuid.uuid4().int
@@ -96,11 +98,11 @@ class Actor:
         cell.future = future
         get_scheduler().outgoing_manager.send_message(msg)
 
-        await asyncio.wait_for(future, timeout)
+        return await asyncio.wait_for(future, timeout)
 
     async def kill(self, actor_ref):
         msg = KillRequest(
-            self.ref,
+            self._ref,
             actor_ref
         )
 
@@ -118,7 +120,7 @@ class Actor:
 
         future.add_done_callback(_callback)
 
-        await future
+        return await future
 
     async def become(self, new_behaviour):
         pass

@@ -254,12 +254,16 @@ class Scheduler(Process):
             elif isinstance(message, ActorSpawned):
                 cell = self.cell_by_id[message.parent_ref.actor_id]
 
-                cell.future.set_result(message.actor_ref)
+                self.aio_thread.loop.call_soon_threadsafe(
+                    lambda: cell.future.set_result(message.actor_ref)
+                )
 
             elif isinstance(message, ActorKilled):
                 cell = self.cell_by_id[message.killer_ref.actor_id]
 
-                cell.future.set_result(None)
+                self.aio_thread.loop.call_soon_threadsafe(
+                    lambda: cell.future.set_result(None)
+                )
 
     def send_message(self, message):
         actor_id = message.target_ref.actor_id
@@ -303,7 +307,16 @@ class Scheduler(Process):
     def kill_actor(self, request: KillRequest):
         cell = self.cell_by_id[request.actor_ref.actor_id]
         del self.cell_by_id[request.actor_ref.actor_id]
-        self.ready_cells.remove(cell)
+
+        if cell in self.ready_cells:
+            self.ready_cells.remove(cell)
+
+        self.outgoing_manager.send_message(
+            ActorKilled(
+                killer_ref=request.killer_ref,
+                killed_ref=request.actor_ref
+            )
+        )
 
 
 def get_scheduler():
