@@ -20,7 +20,9 @@ class Connection(Actor):
         await self.writer.drain()
         self.writer.close()
 
+        print('killing', self.ref(), '...')
         await self.kill(self.ref())
+        print('done.')
 
 
 class Server(Actor):
