@@ -20,6 +20,8 @@ class Connection(Actor):
         await self.writer.drain()
         self.writer.close()
 
+        await self.kill(self.ref())
+
 
 class Server(Actor):
     async def receive(self, message, sender):

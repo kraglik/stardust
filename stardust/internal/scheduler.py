@@ -160,14 +160,17 @@ class Scheduler(Thread):
         if cell in self.ready_cells:
             self.ready_cells.remove(cell)
 
-        self.system.message_manager.send(
-            ActorKilled(
-                killer_ref=request.killer_ref,
-                killed_ref=request.actor_ref
+        if request.actor_ref == request.killer_ref:
+            self.aio_thread.loop.call_soon_threadsafe(
+                lambda: cell.future.set_result(None)
             )
-        )
-
-        return
+        else:
+            self.system.message_manager.send(
+                ActorKilled(
+                    killer_ref=request.killer_ref,
+                    killed_ref=request.actor_ref
+                )
+            )
 
     def actor_spawned(self, message: ActorSpawned):
         cell = self.cell_by_id[message.parent_ref.actor_id]
